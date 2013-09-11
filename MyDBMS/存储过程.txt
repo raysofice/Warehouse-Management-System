@@ -1,0 +1,434 @@
+create proc select_pd @us nvarchar(50)
+as
+	select password,admin from Users where userid=@us
+go
+
+create proc select_qu @us nvarchar(50)
+as
+	select question,answer from Users where userid=@us
+go
+
+create proc up_pd (@pd nvarchar(50),@us nvarchar(50))
+as
+	update Users set password=@pd where userid= @us
+go
+
+create proc update_userinfo @id nvarchar(50),@qu nvarchar(50),@an nvarchar(50),@pa nvarchar(50)
+as
+	update Users set question=@qu,answer=@qu,password=@pa
+	where userid=@id
+go
+
+create proc select_usinfo @id nvarchar(50)
+as
+	select userid as 用户名,admin 是否是管理员
+	from Users
+	where userid!='father' and userid like '%'+@id+'%';
+go
+
+create proc insert_us @id nvarchar(50),@ad bit
+as
+	insert into Users values(@id,@id,@ad,@id,@id);
+go
+
+create proc delete_us @id nvarchar(50)
+as
+	delete from Users where userid=@id;
+go
+
+create proc update_us @id nvarchar(50),@ad nvarchar(50)
+as
+	update Users set admin=@ad where userid=@id;
+go
+
+
+
+
+
+
+
+create proc select_cus (@id nvarchar(50),@na nvarchar(50),@tp nvarchar(50))
+as
+	select *from Customer where c_id like '%'+@id+'%' and c_name like '%'+@na+'%' and type like '%'+@tp+'%';
+go
+
+create proc select_cus;2 (@id nvarchar(50),@na nvarchar(50),@tp nvarchar(50))
+as
+	select c_id as 客户编码,c_name as 客户名称,contactname as 联系人,
+			phone as 电话,address as 地址,describe as 备注
+	 from Customer 
+	 where c_id like '%'+@id+'%' and c_name like '%'+@na+'%' and type like '%'+@tp+'%';
+go
+
+create proc insert_cus (@name nvarchar(50),@tp nvarchar(50),@coname nvarchar(50),
+						@ph nvarchar(50),@add nvarchar(50),@des nvarchar(max)))
+as
+	insert into Customer values (@name,@tp,@coname,@ph,@add,@des)
+go
+
+
+
+
+
+
+
+
+create proc select_staff (@id nvarchar(50),@name nvarchar(50))
+as
+	select emp_id as 员工编号,name as 员工名,phone as 电话
+	from Staff
+	where emp_id like '%'+@id+'%' and name like '%'+@name+'%';
+go
+
+create proc select_staff;2 (@name nvarchar(50),@te nvarchar(50))
+as
+	select *from Staff
+	where name =@name and phone=@te;
+go
+
+create proc insert_staff (@name nvarchar(50),@ph nvarchar(50))
+as
+	insert into Staff values (@name,@ph)
+go
+
+
+
+
+
+
+
+create proc select_storage (@id nvarchar(50),@name nvarchar(50))
+as
+	select s_id as 仓库编号,s_name as 仓库名,describe as 描述
+	from Storage
+	where s_id like '%'+@id+'%' and s_name like '%'+@name+'%';
+go
+
+
+create proc insert_storage(@name nvarchar(50),@des nvarchar(50))
+as
+	insert into Storage values (@name,@des);
+go
+
+
+
+
+
+
+create proc select_pro (@id nvarchar(50),@na nvarchar(50))
+as
+	select *from Product where p_id like '%'+@id+'%' and p_name like '%'+@na+'%';
+go
+
+create proc select_pro;2 (@na nvarchar(50),@u nvarchar(50),
+						@l nvarchar(50),@h nvarchar(50),@da nvarchar(50))
+as
+	select *from Product where p_name =@na and unit=@u and p_low=@l
+				and p_high=@h and Product.date=@da;
+go
+
+create proc update_pro @id nvarchar(50),@tt nvarchar(50)
+as
+	update Product set tot+=@tt where p_id=@id;
+go
+
+create proc update_pro;2 @id nvarchar(50),@tt nvarchar(50)
+as
+	update Product set tot-=@tt where p_id=@id;
+go
+
+create proc insert_pro (@name nvarchar(50),@unit nvarchar(50),@tot nvarchar(50),
+						@low nvarchar(50),@high nvarchar(50),@da nvarchar(50))
+as
+	insert into Product values(@name,@unit,@tot,@low,@high,@da);
+go
+
+create proc warn_pro_bo (@id nvarchar(50),@na nvarchar(50))
+as
+	select p_id as 商品编号,p_name as 商品名,tot as 总量,p_low as 最低限额,p_high as 最高限额
+	from Product
+	where p_id like '%'+@id+'%' and p_name like '%'+@na+'%'
+			and (p_low>tot or p_high<tot);
+go
+
+create proc warn_pro_h (@id nvarchar(50),@na nvarchar(50))
+as
+	select p_id as 商品编号,p_name as 商品名,tot as 总量,p_low as 最低限额,p_high as 最高限额
+	from Product
+	where p_id like '%'+@id+'%' and p_name like '%'+@na+'%'
+			and p_high<tot;
+go
+
+create proc warn_pro_l (@id nvarchar(50),@na nvarchar(50))
+as
+	select p_id as 商品编号,p_name as 商品名,tot as 总量,p_low as 最低限额,p_high as 最高限额
+	from Product
+	where p_id like '%'+@id+'%' and p_name like '%'+@na+'%'
+			and p_low>tot;
+go
+
+
+
+
+
+
+
+create proc select_prostate (@id nvarchar(50),@d1 date,@d2 date)
+as
+	select p_id as 产品编号,createdate as 生产日期,total as 剩余量
+	 from Productstate where p_id like '%'+@id+'%' and createdate between @d1 and @d2;
+go
+
+create proc select_prostate;2 (@id nvarchar(50))
+as
+	select product.p_id as 产品编号,p_name as 产品名称, createdate  as 生产日期,
+		product.date-(datediff(day,createdate,GETDATE())) as '剩余\天',total as 现存总量 
+	from Productstate,Product 
+	where Product.p_id=Productstate.p_id and product.p_id like '%'+@id+'%';
+go
+
+create proc select_prostate;3 (@id nvarchar(50))
+as
+	select p_id as 产品编号,createdate as 生产日期,total as 剩余量
+	 from Productstate where p_id like '%'+@id+'%';
+go
+
+create proc select_prostate;4 (@id nvarchar(50),@d1 date)
+as
+	select * from Productstate where p_id=@id and createdate =@d1;
+go
+
+
+create proc update_prostate @id nvarchar(50),@d date,@tt nvarchar(50)
+as
+	update Productstate set total+=@tt where p_id=@id and createdate=@d;
+go
+
+create proc update_prostate;2 @id nvarchar(50),@d date,@tt nvarchar(50)
+as
+	update Productstate set total-=@tt where p_id=@id and createdate=@d;
+go
+
+create proc insert_prostate (@id nvarchar(50),@da date,@tot nvarchar(50))
+as
+	insert into Productstate values(@id,@da,@tot);
+go
+
+create proc warn_prostate @id nvarchar(50),@dd nvarchar(50)
+as
+	select product.p_id as 商品编号,product.p_name as 商品名,createdate as 生产日期
+			,Product.date as '保质期\天',product.date-(datediff(day,createdate,GETDATE())) as '剩余\天'
+	from Product,Productstate
+	where product.p_id=Productstate.p_id and total>0 and  product.p_id like '%'+@id+'%'
+			and datediff(day,createdate,GETDATE())>Product.date-@dd;
+go
+
+
+
+
+
+
+create proc select_storein;1 (@id nvarchar(50),@c_id nvarchar(50),@s_id nvarchar(50))
+as
+	select In_order.in_id as 入库单编号,In_order.c_id as 供应商编号,Customer.c_name as 供应商名称, In_order.emp_id as 员工编号,Staff.name as 员工名称,In_order.date as 日期 
+	from In_order,Customer,Staff 
+	where In_order.c_id=Customer.c_id and In_order.emp_id=Staff.emp_id 
+	and In_order.in_id like '%'+@id+'%' and In_order.c_id like '%'+@c_id+'%' 
+	and In_order.emp_id like '%'+@s_id+'%';
+go
+
+create proc select_storein;2 (@id nvarchar(50),@c_id nvarchar(50),@s_id nvarchar(50),@d1 date,@d2 date)
+as
+	select In_order.in_id as 入库单编号,In_order.c_id as 供应商编号,Customer.c_name as 供应商名称, In_order.emp_id as 员工编号,Staff.name as 员工名称,In_order.date as 日期 
+	from In_order,Customer,Staff 
+	where In_order.c_id=Customer.c_id and In_order.emp_id=Staff.emp_id 
+	and In_order.in_id like '%'+@id+'%' and In_order.c_id like '%'+@c_id+'%' 
+	and In_order.emp_id like '%'+@s_id+'%'
+	and In_order.date between @d1 and @d2;
+go
+
+create proc insert_storein @d date,@cd nvarchar(50),@ed nvarchar(50)
+as
+	insert into In_order values(@d,@cd,@ed);
+go
+
+create proc select_max_storein 
+as
+	select MAX(in_id)as ma from In_order
+go
+
+
+
+
+
+
+
+
+create proc select_storein_item (@id nvarchar(50),@num nvarchar(50))
+as
+	select In_item.in_id as 入库单编号,In_item.in_num as 进单货物序号,In_item.p_id as 商品编码, 
+			Product.p_name as 商品名称,In_item.createdate as 生产日期,In_item.s_id as 存储仓库编号,In_item.in_price as '进价\元',
+			Product.unit as 单位,In_item.in_num as 进量,(In_item.in_num*In_item.in_price ) as '总计\元'
+	from In_item,Product
+	where In_item.p_id=Product.p_id 
+	and In_item.in_id =@id and In_item.in_num =@num
+go
+
+create proc select_storein_item;2 (@id nvarchar(50))
+as
+	select In_item.in_id as 入库单编号,In_item.in_num as 进单货物序号,In_item.p_id as 商品编码, 
+			Product.p_name as 商品名称,In_item.createdate as 生产日期,In_item.s_id as 存储仓库编号,In_item.in_price as '进价\元',
+			Product.unit as 单位,In_item.in_num as 进量,(In_item.in_num*In_item.in_price ) as '总计\元'
+	from In_item,Product
+	where In_item.p_id=Product.p_id 
+	and In_item.in_id =@id 
+go
+
+create proc insert_storein_item (@ind nvarchar(50),@inum nvarchar(50),@pd nvarchar(50),@d date
+			,@sd nvarchar(50),@ip nvarchar(50),@ia nvarchar(50))
+as
+begin
+	insert into In_item values(@ind,@inum,@pd,@d,@sd,@ip,@ia)
+	begin try
+		update Productstate set total+=@ia where p_id=@pd and createdate=@d
+		update Product set tot+=@ia where p_id=@pd
+	end try
+	begin catch
+	end catch	
+end
+
+create proc delete_storein_item (@ind nvarchar(50),@inum nvarchar(50),@pd nvarchar(50),@d date
+			,@ia nvarchar(50))
+as
+begin
+	delete from In_item where in_id=@ind and in_num=@inum;
+	begin try
+		update Productstate set total-=@ia where p_id=@pd and createdate=@d
+		update Product set tot-=@ia where p_id=@pd
+	end try
+	begin catch
+	end catch	
+end
+
+
+
+
+
+
+
+
+create proc select_storeout;1 (@id nvarchar(50),@c_id nvarchar(50),@s_id nvarchar(50))
+as
+	select Out_order.out_id as 出库单编号,Out_order.c_id as 采购商编号,Customer.c_name as 采购商名称,
+			 Out_order.emp_id as 员工编号,Staff.name as 员工名称,Out_order.date as 日期 
+	from Out_order,Customer,Staff 
+	where Out_order.c_id=Customer.c_id and Out_order.emp_id=Staff.emp_id 
+	and Out_order.out_id like '%'+@id+'%' and Out_order.c_id like '%'+@c_id+'%' 
+	and Out_order.emp_id like '%'+@s_id+'%';
+go
+
+create proc select_storeout;2 (@id nvarchar(50),@c_id nvarchar(50),@s_id nvarchar(50),@d1 date,@d2 date)
+as
+	select Out_order.out_id as 出库单编号,Out_order.c_id as 采购商编号,Customer.c_name as 采购商名称,
+			 Out_order.emp_id as 员工编号,Staff.name as 员工名称,Out_order.date as 日期 
+	from Out_order,Customer,Staff 
+	where Out_order.c_id=Customer.c_id and Out_order.emp_id=Staff.emp_id 
+	and Out_order.out_id like '%'+@id+'%' and Out_order.c_id like '%'+@c_id+'%' 
+	and Out_order.emp_id like '%'+@s_id+'%' and Out_order.date between @d1 and @d2;
+go
+
+create proc insert_storeout @d date,@cd nvarchar(50),@ed nvarchar(50)
+as
+	insert into Out_order values(@d,@cd,@ed);
+go
+
+create proc select_max_storeout 
+as
+	select MAX(out_id)as ma from Out_order
+go
+
+
+
+
+
+create proc select_storeout_item (@id nvarchar(50),@num nvarchar(50))
+as
+	select Out_item.out_id as 出库单编号,Out_item.out_num as 出单货物序号,Out_item.p_id as 商品编码, 
+			Product.p_name as 商品名称,Out_item.createdate as 生产日期,Out_item.out_price as '售价\元',
+			Product.unit as 单位,Out_item.out_num as 售量,(Out_item.out_num*Out_item.out_price ) as '总计\元'
+	from Out_item,Product
+	where Out_item.p_id=Product.p_id 
+	and Out_item.out_id =@id and Out_item.out_num =@num
+go
+
+
+create proc select_storeout_item;2 @id nvarchar(50)
+as
+	select Out_item.out_id as 出库单编号,Out_item.out_num as 出单货物序号,Out_item.p_id as 商品编码, 
+			Product.p_name as 商品名称,Out_item.createdate as 生产日期,Out_item.out_price as '售价\元',
+			Product.unit as 单位,Out_item.out_num as 售量,(Out_item.out_num*Out_item.out_price ) as '总计\元'
+	from Out_item,Product
+	where Out_item.p_id=Product.p_id 
+	and Out_item.out_id =@id 
+go
+
+create proc insert_storeout_item (@oud nvarchar(50),@onum nvarchar(50),@pd nvarchar(50),@d date
+			,@op nvarchar(50),@oa nvarchar(50))
+as
+begin
+	insert into Out_item values(@oud,@onum,@pd,@d,@op,@oa)
+	begin try
+		update Productstate set total-=@oa where p_id=@pd and createdate=@d
+		update Product set tot-=@oa where p_id=@pd
+	end try
+	begin catch
+	end catch	
+end
+
+create proc delete_storeout_item (@oud nvarchar(50),@onum nvarchar(50),@pd nvarchar(50),@d date
+			,@oa nvarchar(50))
+as
+begin
+	delete from Out_item where out_id=@oud and out_num=@onum;
+	begin try
+		update Productstate set total+=@oa where p_id=@pd and createdate=@d
+		update Product set tot+=@oa where p_id=@pd
+	end try
+	begin catch
+	end catch	
+end
+
+
+
+
+
+create proc c_in @d date,@d2 date
+as
+	select in_item.p_id,p_name,SUM(in_amount)as su
+	from In_item,Product,In_order
+	where In_item.p_id=Product.p_id and In_item.in_id=In_order.in_id
+			and In_order.date between @d and @d2
+	group by in_item.p_id,p_name
+go
+
+
+create proc c_out @d date,@d2 date
+as
+	select Out_item.p_id,p_name,SUM(Out_amount)as su
+	from Out_item,Product,Out_order
+	where Out_item.p_id=Product.p_id and Out_item.Out_id=Out_order.Out_id
+			and Out_order.date between @d and @d2
+	group by Out_item.p_id,p_name
+go
+
+
+
+create proc copydbs @file nvarchar(500)
+as
+	backup database ST to disk=@file
+go
+
+create proc restoredbs @file nvarchar(500)
+as
+	restore database ST from disk=@file with replace
+go
